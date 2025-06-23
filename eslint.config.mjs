@@ -1,16 +1,52 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import js from '@eslint/js';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+import { defineConfig } from 'eslint/config';
+import tsParser from '@typescript-eslint/parser';
+import unusedImports from 'eslint-plugin-unused-imports';
+import airbnbBase from 'eslint-config-airbnb-base';
+import airbnbBaseTypescript from 'eslint-config-airbnb-base-typescript';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-];
-
-export default eslintConfig;
+export default defineConfig([
+	// my personal configuration
+	js.configs.recommended,
+	{
+		files: ['**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+		languageOptions: {
+			parser: tsParser,
+			sourceType: 'script',
+			globals: {
+				...globals.browser,
+				...globals.node,
+			},
+		},
+		plugins: {
+			'@typescript-eslint': tseslint,
+			'unused-imports': unusedImports,
+		},
+		rules: {
+			...airbnbBase.rules,
+			...airbnbBaseTypescript.rules,
+			'no-unused-vars': 'off',
+			'unused-imports/no-unused-vars': [
+				'warn',
+				{
+					vars: 'all',
+					varsIgnorePattern: '^_',
+					args: 'after-used',
+					argsIgnorePattern: '^_',
+					caughtErrors: 'none',
+					caughtErrorsIgnorePattern: '^_',
+				},
+			],
+		},
+		settings: {
+			'imports/resolver': {
+				node: {
+					extensions: ['.js', '.jsx', '.ts', '.tsx'],
+				},
+			},
+		},
+	},
+]);
